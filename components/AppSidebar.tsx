@@ -33,7 +33,10 @@ export function AppSidebar({ categories, user, onLogout, activeFilter, setActive
                         className="w-full justify-start"
                         onClick={() => setActiveFilter('all')}
                     >
-                        <ClipboardList className="mr-2 h-4 w-4" />
+                        <ClipboardList className={cn(
+                            "mr-2 h-4 w-4",
+                            activeFilter === 'all' && "fill-blue-400 text-blue-400"
+                        )} />
                         All Snippets
                     </Button>
                     <Button
@@ -41,7 +44,10 @@ export function AppSidebar({ categories, user, onLogout, activeFilter, setActive
                         className="w-full justify-start"
                         onClick={() => setActiveFilter('favorites')}
                     >
-                        <Star className="mr-2 h-4 w-4" />
+                        <Star className={cn(
+                            "mr-2 h-4 w-4",
+                            activeFilter === 'favorites' && "fill-yellow-500 text-yellow-500"
+                        )} />
                         Favorites
                     </Button>
                 </div>
@@ -60,7 +66,13 @@ export function AppSidebar({ categories, user, onLogout, activeFilter, setActive
                                 className="w-full justify-start"
                                 onClick={() => setActiveFilter(category.id)}
                             >
-                                <Hash className="mr-2 h-4 w-4" />
+                                <div
+                                    className={cn(
+                                        "mr-2 h-4 w-4 rounded-full shrink-0 transition-opacity",
+                                        activeFilter !== category.id && "opacity-50"
+                                    )}
+                                    style={{ backgroundColor: category.color }}
+                                />
                                 {category.name}
                             </Button>
                         ))}

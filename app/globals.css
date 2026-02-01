@@ -148,3 +148,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Snippet action buttons - always visible on touch devices, hover-only on desktop */
+.snippet-actions {
+  opacity: 1;
+  transition: opacity 0.2s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .snippet-actions {
+    opacity: 0;
+  }
+
+  .group:hover .snippet-actions {
+    opacity: 1;
+  }
+}
