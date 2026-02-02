@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { AddCategoryDialog } from '@/components/AddCategoryDialog'
+import { EditCategoryDialog } from '@/components/EditCategoryDialog'
 
 interface AppSidebarProps {
     categories: Category[]
@@ -16,9 +17,20 @@ interface AppSidebarProps {
     activeFilter: string
     setActiveFilter: (filter: string) => void
     onAddCategory: (name: string, color: string) => void
+    onEditCategory: (id: string, name: string, color: string) => void
+    onDeleteCategory: (id: string) => void
 }
 
-export function AppSidebar({ categories, user, onLogout, activeFilter, setActiveFilter, onAddCategory }: AppSidebarProps) {
+export function AppSidebar({
+    categories,
+    user,
+    onLogout,
+    activeFilter,
+    setActiveFilter,
+    onAddCategory,
+    onEditCategory,
+    onDeleteCategory
+}: AppSidebarProps) {
     return (
         <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border w-64">
             <div className="p-4 flex items-center gap-2 font-semibold">
@@ -60,21 +72,29 @@ export function AppSidebar({ categories, user, onLogout, activeFilter, setActive
                     </h2>
                     <div className="space-y-1">
                         {categories.map((category) => (
-                            <Button
-                                key={category.id}
-                                variant={activeFilter === category.id ? 'secondary' : 'ghost'}
-                                className="w-full justify-start"
-                                onClick={() => setActiveFilter(category.id)}
-                            >
-                                <div
-                                    className={cn(
-                                        "mr-2 h-4 w-4 rounded-full shrink-0 transition-opacity",
-                                        activeFilter !== category.id && "opacity-50"
-                                    )}
-                                    style={{ backgroundColor: category.color }}
-                                />
-                                {category.name}
-                            </Button>
+                            <div key={category.id} className="relative group">
+                                <Button
+                                    variant={activeFilter === category.id ? 'secondary' : 'ghost'}
+                                    className="w-full justify-start pr-8"
+                                    onClick={() => setActiveFilter(category.id)}
+                                >
+                                    <div
+                                        className={cn(
+                                            "mr-2 h-4 w-4 rounded-full shrink-0 transition-opacity",
+                                            activeFilter !== category.id && "opacity-50"
+                                        )}
+                                        style={{ backgroundColor: category.color }}
+                                    />
+                                    {category.name}
+                                </Button>
+                                <div className="absolute right-0 top-0 h-full flex items-center pr-1">
+                                    <EditCategoryDialog
+                                        category={category}
+                                        onUpdate={onEditCategory}
+                                        onDelete={onDeleteCategory}
+                                    />
+                                </div>
+                            </div>
                         ))}
                         <AddCategoryDialog onAdd={onAddCategory} />
                     </div>

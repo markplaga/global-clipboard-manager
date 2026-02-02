@@ -14,6 +14,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
+import { EditSnippetDialog } from '@/components/EditSnippetDialog'
+
 interface SnippetCardProps {
     snippet: Snippet
     category?: Category
@@ -22,6 +24,7 @@ interface SnippetCardProps {
     onDelete: (id: string) => void
     onCopy: (content: string) => void
     onUpdateCategory: (id: string, categoryId: string | null) => void
+    onUpdateSnippet: (id: string, content: string, categoryId: string | null) => void
 }
 
 export function SnippetCard({
@@ -31,7 +34,8 @@ export function SnippetCard({
     onToggleFavorite,
     onDelete,
     onCopy,
-    onUpdateCategory
+    onUpdateCategory,
+    onUpdateSnippet
 }: SnippetCardProps) {
     const [copied, setCopied] = useState(false)
     const [isExpanded, setIsExpanded] = useState(false)
@@ -50,6 +54,30 @@ export function SnippetCard({
         e.preventDefault()
         e.stopPropagation()
         toggleExpanded()
+    }
+
+    const renderContent = (text: string) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g
+        const parts = text.split(urlRegex)
+
+        return parts.map((part, index) => {
+            if (part.match(urlRegex)) {
+                return (
+                    <a
+                        key={index}
+                        href={part}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline z-10 relative"
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchEnd={(e) => e.stopPropagation()}
+                    >
+                        {part}
+                    </a>
+                )
+            }
+            return part
+        })
     }
 
     return (
@@ -95,11 +123,11 @@ export function SnippetCard({
                                     <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
                                 )}
                             </div>
-                            <p className="text-[10px] text-muted-foreground leading-none shrink-0">
+                            <p className="text-[10px] text-muted-foreground leading-none shrink-0" suppressHydrationWarning>
                                 {new Date(snippet.created_at).toLocaleDateString()}
                             </p>
                         </div>
-                        <p
+                        <div
                             className={cn(
                                 "text-sm whitespace-pre-wrap break-words cursor-pointer hover:opacity-80 transition-opacity leading-tight select-none touch-manipulation",
                                 !isExpanded && "line-clamp-1"
@@ -107,8 +135,8 @@ export function SnippetCard({
                             onClick={toggleExpanded}
                             onTouchEnd={handleTouchEnd}
                         >
-                            {snippet.content.trim()}
-                        </p>
+                            {renderContent(snippet.content.trim())}
+                        </div>
                     </div>
 
                     <div className="snippet-actions flex flex-row shrink-0 items-center gap-0.5">
@@ -120,6 +148,11 @@ export function SnippetCard({
                         >
                             {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
                         </Button>
+                        <EditSnippetDialog
+                            snippet={snippet}
+                            categories={allCategories}
+                            onUpdate={onUpdateSnippet}
+                        />
                         <Button
                             size="icon"
                             variant="ghost"

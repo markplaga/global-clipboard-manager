@@ -66,7 +66,34 @@ export function Dashboard({ user, initialCategories, initialSnippets }: Dashboar
     }
 
     const handleCopy = async (content: string) => {
-        await navigator.clipboard.writeText(content)
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(content)
+            } else {
+                throw new Error('Clipboard API not available')
+            }
+        } catch (err) {
+            // Fallback for non-secure contexts (like local IP on phone)
+            const textArea = document.createElement("textarea")
+            textArea.value = content
+
+            // Ensure it's not visible but part of the DOM
+            textArea.style.position = "fixed"
+            textArea.style.left = "-9999px"
+            textArea.style.top = "0"
+            document.body.appendChild(textArea)
+
+            textArea.focus()
+            textArea.select()
+
+            try {
+                document.execCommand('copy')
+            } catch (e) {
+                console.error('Fallback copy failed', e)
+            }
+
+            document.body.removeChild(textArea)
+        }
     }
 
     const handleAddCategory = async (name: string, color: string) => {
@@ -81,7 +108,7 @@ export function Dashboard({ user, initialCategories, initialSnippets }: Dashboar
         }
     }
 
-    const handleUpdateCategory = async (id: string, categoryId: string | null) => {
+    const handleUpdateSnippetCategory = async (id: string, categoryId: string | null) => {
         const { error } = await supabase
             .from('snippets')
             .update({ category_id: categoryId })
@@ -89,6 +116,44 @@ export function Dashboard({ user, initialCategories, initialSnippets }: Dashboar
 
         if (!error) {
             setSnippets(snippets.map(s => s.id === id ? { ...s, category_id: categoryId } : s))
+        }
+    }
+
+    const handleEditCategory = async (id: string, name: string, color: string) => {
+        const { error } = await supabase
+            .from('categories')
+            .update({ name, color })
+            .eq('id', id)
+
+        if (!error) {
+            setCategories(categories.map(c => c.id === id ? { ...c, name, color } : c))
+        }
+    }
+
+    const handleDeleteCategory = async (id: string) => {
+        const { error } = await supabase
+            .from('categories')
+            .delete()
+            .eq('id', id)
+
+        if (!error) {
+            setCategories(categories.filter(c => c.id !== id))
+            // Also update snippets that were in this category to have null category
+            setSnippets(snippets.map(s => s.category_id === id ? { ...s, category_id: null } : s))
+            if (activeFilter === id) {
+                setActiveFilter('all')
+            }
+        }
+    }
+
+    const handleUpdateSnippet = async (id: string, content: string, categoryId: string | null) => {
+        const { error } = await supabase
+            .from('snippets')
+            .update({ content, category_id: categoryId })
+            .eq('id', id)
+
+        if (!error) {
+            setSnippets(snippets.map(s => s.id === id ? { ...s, content, category_id: categoryId } : s))
         }
     }
 
@@ -112,6 +177,8 @@ export function Dashboard({ user, initialCategories, initialSnippets }: Dashboar
                 activeFilter={activeFilter}
                 setActiveFilter={setActiveFilter}
                 onAddCategory={handleAddCategory}
+                onEditCategory={handleEditCategory}
+                onDeleteCategory={handleDeleteCategory}
             />
 
             <div className="flex-1 flex flex-col">
@@ -149,7 +216,10 @@ export function Dashboard({ user, initialCategories, initialSnippets }: Dashboar
                                     onToggleFavorite={handleToggleFavorite}
                                     onDelete={handleDelete}
                                     onCopy={handleCopy}
-                                    onUpdateCategory={handleUpdateCategory}
+                                    onUpdateCategory={handleUpdateSnippetCategory}
+                                    onUpdateSnippet={handleUpdateSnippet}
+                                    onEditCategory={handleEditCategory}
+                                    onDeleteCategory={handleDeleteCategory}
                                 />
                             ))
                         )}
