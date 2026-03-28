@@ -218,8 +218,6 @@ export function Dashboard({ user, initialCategories, initialSnippets }: Dashboar
                                     onCopy={handleCopy}
                                     onUpdateCategory={handleUpdateSnippetCategory}
                                     onUpdateSnippet={handleUpdateSnippet}
-                                    onEditCategory={handleEditCategory}
-                                    onDeleteCategory={handleDeleteCategory}
                                 />
                             ))
                         )}
